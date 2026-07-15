@@ -119,10 +119,48 @@ export default function App() {
         )}
       </section>
 
-      {report && !report.message && (
+      {report && report.category_ranking && (
         <section className="card">
-          <h2>성과 리포트</h2>
-          <pre>{JSON.stringify(report, null, 2)}</pre>
+          <h2>📊 카테고리별 성과</h2>
+          {report.insight && <p className="topic">💡 {report.insight}</p>}
+          <table>
+            <thead>
+              <tr><th>순위</th><th>카테고리</th><th>영상</th><th>평균 조회수</th><th>평균 좋아요</th></tr>
+            </thead>
+            <tbody>
+              {report.category_ranking.map((c, i) => (
+                <tr key={c.category}>
+                  <td className="dim">{i + 1}</td>
+                  <td><strong>{c.category}</strong></td>
+                  <td className="dim">{c.videos}개</td>
+                  <td>{c.avg_views?.toLocaleString()}회</td>
+                  <td className="dim">{c.avg_likes}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {report.top_videos?.length > 0 && (
+            <>
+              <h2 style={{ marginTop: '20px' }}>🏆 조회수 TOP 5</h2>
+              <table>
+                <thead><tr><th>조회수</th><th>카테고리</th><th>주제</th></tr></thead>
+                <tbody>
+                  {report.top_videos.map(v => (
+                    <tr key={v.video_id}>
+                      <td>{v.views?.toLocaleString()}회</td>
+                      <td className="dim">{v.category}</td>
+                      <td><a href={v.url} target="_blank" rel="noreferrer">{v.topic}</a></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          )}
+          {report.generated_at && (
+            <p className="dim" style={{ marginTop: '12px' }}>
+              갱신: {new Date(report.generated_at).toLocaleString('ko-KR')}
+            </p>
+          )}
         </section>
       )}
     </div>
