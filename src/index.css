@@ -21,6 +21,21 @@ header p { color: #8b93a7; margin-top: 6px; font-size: 0.85rem; }
 .server-badge.up { background: #16281c; border: 1px solid #2d5a3c; }
 .server-badge.down { background: #2b1a1e; border: 1px solid #6b2833; }
 
+.header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.refresh-button,
+.page-buttons button {
+  background: #202637;
+  color: #e6e8ee;
+  border: 1px solid #343c50;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.refresh-button { padding: 8px 14px; }
+.refresh-button:hover,
+.page-buttons button:hover:not(:disabled) { background: #293149; border-color: #526080; }
+.refresh-button:focus-visible,
+.page-buttons button:focus-visible { outline: 2px solid #7aa2f7; outline-offset: 2px; }
+
 .card {
   background: #181c26;
   border: 1px solid #262b3a;
@@ -59,6 +74,8 @@ header p { color: #8b93a7; margin-top: 6px; font-size: 0.85rem; }
 table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
 th { text-align: left; color: #8b93a7; font-weight: normal; padding: 6px 8px; border-bottom: 1px solid #262b3a; }
 td { padding: 8px; border-bottom: 1px solid #1e2330; }
+.table-scroll { width: 100%; overflow-x: auto; }
+.table-scroll table { min-width: 560px; }
 
 a { color: #7aa2f7; text-decoration: none; }
 a:hover { text-decoration: underline; }
@@ -67,6 +84,31 @@ a:hover { text-decoration: underline; }
 .history li { display: flex; justify-content: space-between; gap: 12px; }
 .ok-text { color: #6fce8e; }
 .err-text { color: #f7768e; }
+.list-error {
+  margin-bottom: 12px;
+  border: 1px solid #6b2833;
+  border-radius: 8px;
+  background: #2b1a1e;
+  color: #f7768e;
+  padding: 10px 12px;
+  font-size: 0.85rem;
+}
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.pagination-summary { color: #8b93a7; font-size: 0.82rem; }
+.page-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
+.page-buttons button { min-width: 36px; padding: 7px 9px; font-size: 0.8rem; }
+.page-buttons button.active { background: #39578f; border-color: #7aa2f7; color: #fff; }
+.page-buttons button:disabled { cursor: not-allowed; opacity: 0.4; }
+.subsection-title { margin-top: 20px; }
+.report-time { margin-top: 12px; }
 
 pre {
   background: #0f1117;
@@ -75,4 +117,14 @@ pre {
   font-size: 0.8rem;
   overflow-x: auto;
   color: #9ece6a;
+}
+
+@media (max-width: 640px) {
+  .container { padding: 20px 12px; }
+  header h1 { font-size: 1.45rem; }
+  .header-actions { width: 100%; justify-content: space-between; }
+  .card { padding: 16px; }
+  .history li { flex-direction: column; gap: 4px; }
+  .pagination { align-items: flex-start; flex-direction: column; }
+  .page-buttons { width: 100%; }
 }
