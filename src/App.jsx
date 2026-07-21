@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import Pagination from './Pagination.jsx'
 import { normalizePage } from './pagination.js'
+import { formatRecovery } from './recovery.js'
 
 
 const STAGE_LABELS = {
@@ -34,6 +35,17 @@ function StageChip({ name, info }) {
     <div className={`stage ${cls}`}>
       <span className="stage-name">{STAGE_LABELS[name] || name}</span>
       <span className="stage-status">{label}</span>
+    </div>
+  )
+}
+
+function RecoveryStatus({ recovery }) {
+  const formatted = formatRecovery(recovery)
+  if (!formatted) return null
+  return (
+    <div className="recovery-status">
+      <span className={`recovery-badge ${formatted.className}`}>{formatted.label}</span>
+      <span className="recovery-detail">{formatted.detail}</span>
     </div>
   )
 }
@@ -220,11 +232,19 @@ export default function App() {
         ) : runs.length ? (
           <ul className="history">
             {runs.map((run, index) => (
-              <li key={`${run.date}-${run.timestamp || index}`}>
-                <span>{run.date}</span>
-                <span className={run.success ? 'ok-text' : 'err-text'}>
-                  {run.success ? '✅ 성공' : `❌ 실패 — ${(run.message || '').slice(0, 60)}`}
-                </span>
+              <li className="history-item" key={`${run.date}-${run.timestamp || index}`}>
+                <div className="history-summary">
+                  <span>{run.date}</span>
+                  <span className={run.success ? 'ok-text' : 'err-text'}>
+                    {run.success ? '✅ 성공' : `❌ 실패 — ${run.message || '원인 기록 없음'}`}
+                  </span>
+                </div>
+                <RecoveryStatus recovery={run.recovery} />
+                {run.recovery?.status === 'recovered' && run.stages?.uploader?.url && (
+                  <a className="recovery-link" href={run.stages.uploader.url} target="_blank" rel="noreferrer">
+                    복구된 영상 보기 ↗
+                  </a>
+                )}
               </li>
             ))}
           </ul>
