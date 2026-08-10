@@ -19,13 +19,16 @@ async function errorMessage(response) {
 
 
 export function createSlotClient({ getToken, fetchImpl = fetch }) {
-  async function request(path, { method = 'GET', body, protected: needsToken = false, responseType = 'json' } = {}) {
+  async function request(path, {
+    method = 'GET', body, protected: needsToken = false, responseType = 'json', signal,
+  } = {}) {
     const headers = {}
     if (body !== undefined) headers['Content-Type'] = 'application/json'
     if (needsToken) headers['X-Token'] = getToken?.() ?? ''
 
     const response = await fetchImpl(`${SLOT_API}${path}`, {
       method,
+      ...(signal ? { signal } : {}),
       ...(Object.keys(headers).length ? { headers } : {}),
       ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
     })
@@ -38,11 +41,11 @@ export function createSlotClient({ getToken, fetchImpl = fetch }) {
   }
 
   return {
-    listSlots(day) {
-      return request(`?date=${encodeURIComponent(day)}`)
+    listSlots(day, options = {}) {
+      return request(`?date=${encodeURIComponent(day)}`, { signal: options.signal })
     },
-    getSlot(runId) {
-      return request(`/${encodeURIComponent(runId)}`)
+    getSlot(runId, options = {}) {
+      return request(`/${encodeURIComponent(runId)}`, { signal: options.signal })
     },
     checkTopic(runId, topic) {
       return request(`/${encodeURIComponent(runId)}/check-topic`, {
@@ -59,12 +62,14 @@ export function createSlotClient({ getToken, fetchImpl = fetch }) {
         method: 'DELETE', protected: true,
       })
     },
-    events(runId, afterId = 0, limit = 100) {
-      return request(`/${encodeURIComponent(runId)}/events?after_id=${encodeURIComponent(afterId)}&limit=${encodeURIComponent(limit)}`)
+    events(runId, afterId = 0, limit = 100, options = {}) {
+      return request(`/${encodeURIComponent(runId)}/events?after_id=${encodeURIComponent(afterId)}&limit=${encodeURIComponent(limit)}`, {
+        signal: options.signal,
+      })
     },
-    fetchVideoBlob(runId) {
+    fetchVideoBlob(runId, options = {}) {
       return request(`/${encodeURIComponent(runId)}/video`, {
-        protected: true, responseType: 'blob',
+        protected: true, responseType: 'blob', signal: options.signal,
       })
     },
     approve(runId) {

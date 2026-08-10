@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import Pagination from './Pagination.jsx'
+import SlotManager from './SlotManager.jsx'
 import { normalizePage } from './pagination.js'
 import { formatRecovery } from './recovery.js'
 
@@ -166,7 +167,7 @@ export default function App() {
       <header>
         <div>
           <h1>🎬 Shorts Factory</h1>
-          <p>매일 11:00·17:00·21:00 자동 실행 · 30초마다 자동 갱신 {lastSync && `(마지막 ${lastSync})`}</p>
+          <p>매일 11:00·14:00·17:00·21:00 자동 실행 · 30초마다 자동 갱신 {lastSync && `(마지막 ${lastSync})`}</p>
         </div>
         <div className="header-actions">
           <button type="button" className="refresh-button" onClick={refreshAll}>새로고침</button>
@@ -175,6 +176,8 @@ export default function App() {
           </div>
         </div>
       </header>
+
+      <SlotManager />
 
       <section className="card">
         <h2>오늘의 파이프라인 {status?.date && <span className="dim">({status.date})</span>}</h2>
@@ -194,7 +197,7 @@ export default function App() {
             {!status.success && status.message && <p className="error-msg">⚠️ {status.message}</p>}
           </>
         ) : (
-          <p className="dim">오늘 실행 기록이 아직 없습니다. (예정: 11:00·17:00·21:00)</p>
+          <p className="dim">오늘 실행 기록이 아직 없습니다. (예정: 11:00·14:00·17:00·21:00)</p>
         )}
       </section>
 

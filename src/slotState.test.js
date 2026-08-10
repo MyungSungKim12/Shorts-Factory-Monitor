@@ -175,3 +175,20 @@ test('slot client surfaces FastAPI detail and fetches protected video blobs', as
   assert.equal(requests[1].url, '/api/slots/20260810-1/video')
   assert.equal(requests[1].init.headers['X-Token'], 'dashboard-token')
 })
+
+
+test('slot client forwards abort signals for obsolete polling requests', async () => {
+  const requests = []
+  const controller = new AbortController()
+  const client = createSlotClient({
+    getToken: () => '',
+    fetchImpl: async (url, init = {}) => {
+      requests.push({ url, init })
+      return jsonResponse({ slots: [] })
+    },
+  })
+
+  await client.listSlots('2026-08-10', { signal: controller.signal })
+
+  assert.equal(requests[0].init.signal, controller.signal)
+})
