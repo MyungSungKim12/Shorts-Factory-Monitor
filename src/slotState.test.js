@@ -32,13 +32,27 @@ test('reserved slot disables new input at production cutoff', () => {
 })
 
 
-test('rejected slot permits a replacement topic after worker release', () => {
+test('rejected slot permits a replacement topic before production cutoff', () => {
   const actions = slotActions(
     slot({ state: 'rejected', worker_id: null }),
-    new Date('2026-08-10T10:00:00+09:00'),
+    new Date('2026-08-10T08:59:00+09:00'),
   )
 
   assert.equal(actions.canCheck, true)
+})
+
+
+test('new topic checks close at and after the production cutoff', () => {
+  const rejected = slot({ state: 'rejected', worker_id: null })
+
+  assert.equal(
+    slotActions(rejected, new Date('2026-08-10T09:00:00+09:00')).canCheck,
+    false,
+  )
+  assert.equal(
+    slotActions(rejected, new Date('2026-08-10T09:01:00+09:00')).canCheck,
+    false,
+  )
 })
 
 

@@ -47,7 +47,7 @@ export function slotActions(slot, now = new Date()) {
   const retryable = idle && RETRYABLE_STATES.has(state)
 
   return {
-    canCheck: idle && CHECKABLE_STATES.has(state),
+    canCheck: idle && inputOpen && CHECKABLE_STATES.has(state),
     canEdit: idle && inputOpen && EDITABLE_STATES.has(state),
     canApprove: reviewReady,
     canReject: reviewReady,
