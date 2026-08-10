@@ -2,6 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 
 import {
+  actualSourceFacts,
   formatKstDateTime,
   mergeSlotEvents,
   slotDateKeys,
@@ -55,4 +56,19 @@ test('slot timestamps are displayed as KST calendar time', () => {
 test('slot polling uses two seconds for active work and thirty seconds when idle', () => {
   assert.equal(slotPollDelay([{ state: 'producing' }]), 2000)
   assert.equal(slotPollDelay([{ state: 'reserved' }, { state: 'auto' }]), 30000)
+})
+
+
+test('actual source facts are labelled separately from preflight estimates', () => {
+  assert.deepEqual(actualSourceFacts({
+    item_count: 3,
+    unique_source_count: 2,
+    types: { pexels: 2, wikimedia_image: 1 },
+    public_urls: ['https://pexels.com/video/2'],
+  }), {
+    itemCount: 3,
+    uniqueCount: 2,
+    typeLabel: 'pexels 2, wikimedia_image 1',
+    urls: ['https://pexels.com/video/2'],
+  })
 })

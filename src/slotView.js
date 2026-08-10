@@ -35,6 +35,26 @@ export function slotPollDelay(slots) {
 }
 
 
+export function actualSourceFacts(summary) {
+  const types = summary?.types && typeof summary.types === 'object'
+    ? Object.entries(summary.types)
+      .filter(([, count]) => Number.isInteger(count) && count >= 0)
+      .map(([type, count]) => `${type} ${count}`)
+      .join(', ')
+    : ''
+  return {
+    itemCount: Number.isInteger(summary?.item_count) ? summary.item_count : 0,
+    uniqueCount: Number.isInteger(summary?.unique_source_count)
+      ? summary.unique_source_count
+      : 0,
+    typeLabel: types,
+    urls: Array.isArray(summary?.public_urls)
+      ? summary.public_urls.filter(value => typeof value === 'string')
+      : [],
+  }
+}
+
+
 export function userFacingSlotError(error, fallback = '요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.') {
   const messages = {
     401: '관리자 토큰을 확인해 주세요.',

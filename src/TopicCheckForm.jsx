@@ -29,10 +29,11 @@ export default function TopicCheckForm({ slot, actions, client, onChanged }) {
 
   useEffect(() => {
     setTopic(slot.original_input || '')
+    setEmphasis('')
     setInclude(slot.include_constraints || '')
     setExclude(slot.exclude_constraints || '')
     setReferences(slot.reference_links?.length ? slot.reference_links : [''])
-  }, [slot.run_id])
+  }, [slot.run_id, slot.attempt])
 
   const check = async event => {
     event.preventDefault()
@@ -92,7 +93,7 @@ export default function TopicCheckForm({ slot, actions, client, onChanged }) {
 
   const result = slot.check_result
   const visual = result?.visual || {}
-  const canCancel = actions.canEdit && slot.mode === 'manual'
+  const canCancel = actions.canCancel && slot.mode === 'manual'
     && ['draft', 'reservable', 'needs_input', 'reserved'].includes(slot.state)
 
   return (
@@ -197,7 +198,7 @@ export default function TopicCheckForm({ slot, actions, client, onChanged }) {
 
       {error && <p className="slot-inline-error" role="alert">{error}</p>}
       <div className="slot-button-row">
-        {slot.state === 'reservable' && (
+        {actions.canReserve && (
           <button type="button" className="button-primary" onClick={reserve} disabled={Boolean(pending)}>
             {pending === 'reserve' ? '예약 중…' : '이 소재 예약'}
           </button>

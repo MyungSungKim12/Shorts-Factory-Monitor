@@ -42,10 +42,14 @@ export function createSlotClient({ getToken, fetchImpl = fetch }) {
 
   return {
     listSlots(day, options = {}) {
-      return request(`?date=${encodeURIComponent(day)}`, { signal: options.signal })
+      return request(`?date=${encodeURIComponent(day)}`, {
+        protected: true, signal: options.signal,
+      })
     },
     getSlot(runId, options = {}) {
-      return request(`/${encodeURIComponent(runId)}`, { signal: options.signal })
+      return request(`/${encodeURIComponent(runId)}`, {
+        protected: true, signal: options.signal,
+      })
     },
     checkTopic(runId, topic) {
       return request(`/${encodeURIComponent(runId)}/check-topic`, {

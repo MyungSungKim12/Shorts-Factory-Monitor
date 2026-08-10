@@ -32,27 +32,40 @@ test('reserved slot disables new input at production cutoff', () => {
 })
 
 
-test('rejected slot permits a replacement topic before production cutoff', () => {
+test('rejected slot requires the explicit replacement action after worker release', () => {
   const actions = slotActions(
     slot({ state: 'rejected', worker_id: null }),
     new Date('2026-08-10T08:59:00+09:00'),
   )
 
-  assert.equal(actions.canCheck, true)
+  assert.equal(actions.canCheck, false)
+  assert.equal(actions.canRetry, true)
 })
 
 
-test('new topic checks close at and after the production cutoff', () => {
-  const rejected = slot({ state: 'rejected', worker_id: null })
+test('explicit replacement draft remains checkable after the original cutoff', () => {
+  const replacement = slot({
+    state: 'draft', worker_id: null, replacement_allowed: true,
+  })
 
   assert.equal(
-    slotActions(rejected, new Date('2026-08-10T09:00:00+09:00')).canCheck,
-    false,
+    slotActions(replacement, new Date('2026-08-10T09:00:00+09:00')).canCheck,
+    true,
   )
   assert.equal(
-    slotActions(rejected, new Date('2026-08-10T09:01:00+09:00')).canCheck,
-    false,
+    slotActions(replacement, new Date('2026-08-10T09:01:00+09:00')).canCheck,
+    true,
   )
+})
+
+
+test('reserve is exposed only before cutoff or for an explicit replacement', () => {
+  const afterCutoff = new Date('2026-08-10T09:01:00+09:00')
+
+  assert.equal(slotActions(slot({ state: 'reservable' }), afterCutoff).canReserve, false)
+  assert.equal(slotActions(slot({
+    state: 'reservable', replacement_allowed: true,
+  }), afterCutoff).canReserve, true)
 })
 
 
@@ -145,8 +158,8 @@ test('slot client uses the documented methods, paths, bodies, and per-call token
     assert.equal(request.init.method, method)
     if (body) assert.deepEqual(JSON.parse(request.init.body), body)
   }
-  assert.equal(requests[0].init.headers?.['X-Token'], undefined)
-  assert.equal(requests[1].init.headers?.['X-Token'], undefined)
+  assert.equal(requests[0].init.headers?.['X-Token'], 'first-token')
+  assert.equal(requests[1].init.headers?.['X-Token'], 'first-token')
   assert.equal(requests[5].init.headers?.['X-Token'], undefined)
   assert.equal(requests[2].init.headers['X-Token'], 'first-token')
   assert.equal(requests.at(-1).init.headers['X-Token'], 'second-token')

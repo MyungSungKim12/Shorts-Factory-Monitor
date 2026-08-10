@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import { slotActions } from './slotState.js'
-import { userFacingSlotError } from './slotView.js'
+import { actualSourceFacts, userFacingSlotError } from './slotView.js'
 
 
 export default function SlotReview({ slot, client, onChanged }) {
@@ -80,6 +80,7 @@ export default function SlotReview({ slot, client, onChanged }) {
   const quality = review.package?.quality_gate || {}
   const report = quality.report || {}
   const visual = slot.check_result?.visual || {}
+  const actual = actualSourceFacts(review.actual_sources)
 
   return (
     <section className="slot-review" aria-label={`${slot.slot}회차 영상 검토`}>
@@ -99,6 +100,7 @@ export default function SlotReview({ slot, client, onChanged }) {
           {script.tags?.length > 0 && (
             <p className="review-tags">{script.tags.map(tag => `#${tag}`).join(' ')}</p>
           )}
+          <h5>사전 검사 후보(예상) 및 QC</h5>
           <dl className="slot-facts">
             <div><dt>검증 방식</dt><dd>{slot.check_result?.verification_method || '확인 필요'}</dd></div>
             <div><dt>AI 자료</dt><dd>{visual.reusable_ai_count || 0}개</dd></div>
@@ -107,6 +109,22 @@ export default function SlotReview({ slot, client, onChanged }) {
             <div><dt>영상</dt><dd>{report.width && report.height ? `${report.width}×${report.height}` : '확인 중'}</dd></div>
             <div><dt>길이</dt><dd>{Number.isFinite(report.duration) ? `${report.duration}초` : '확인 중'}</dd></div>
           </dl>
+          <h5>실제 제작에 사용된 출처</h5>
+          <dl className="slot-facts">
+            <div><dt>사용 항목</dt><dd>{actual.itemCount}개</dd></div>
+            <div><dt>고유 출처</dt><dd>{actual.uniqueCount}개</dd></div>
+            <div><dt>출처 유형</dt><dd>{actual.typeLabel || '기록 없음'}</dd></div>
+          </dl>
+          {actual.urls.length > 0 && (
+            <details className="scene-details">
+              <summary>실제 공개 출처 {actual.urls.length}개</summary>
+              <ul>
+                {actual.urls.map(url => (
+                  <li key={url}><a href={url} target="_blank" rel="noreferrer">{url}</a></li>
+                ))}
+              </ul>
+            </details>
+          )}
           {quality.failures?.length > 0 && (
             <p className="slot-warning">QC 확인 항목: {quality.failures.join(', ')}</p>
           )}

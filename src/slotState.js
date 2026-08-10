@@ -5,11 +5,11 @@ const ACTIVE_STATES = new Set([
 
 const EDITABLE_STATES = new Set([
   'auto', 'draft', 'reservable', 'needs_input', 'reserved',
-  'failed', 'rejected', 'cancelled',
+  'cancelled',
 ])
 
 const CHECKABLE_STATES = new Set([
-  'auto', 'draft', 'reservable', 'needs_input', 'failed', 'rejected', 'cancelled',
+  'auto', 'draft', 'reservable', 'needs_input', 'cancelled',
 ])
 
 const REVIEW_STATES = new Set(['review_ready', 'held'])
@@ -43,12 +43,16 @@ export function slotActions(slot, now = new Date()) {
   const state = slot?.state
   const idle = slot?.worker_id == null
   const inputOpen = isInputOpen(slot, now)
+  const replacementFlow = slot?.replacement_allowed === true
+    && ['draft', 'reservable', 'needs_input'].includes(state)
   const reviewReady = idle && REVIEW_STATES.has(state)
   const retryable = idle && RETRYABLE_STATES.has(state)
 
   return {
-    canCheck: idle && inputOpen && CHECKABLE_STATES.has(state),
-    canEdit: idle && inputOpen && EDITABLE_STATES.has(state),
+    canCheck: idle && (inputOpen || replacementFlow) && CHECKABLE_STATES.has(state),
+    canEdit: idle && (inputOpen || replacementFlow) && EDITABLE_STATES.has(state),
+    canReserve: idle && state === 'reservable' && (inputOpen || replacementFlow),
+    canCancel: idle && inputOpen && EDITABLE_STATES.has(state),
     canApprove: reviewReady,
     canReject: reviewReady,
     canRetry: retryable,

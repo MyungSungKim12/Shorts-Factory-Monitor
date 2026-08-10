@@ -145,7 +145,7 @@ export default function SlotManager() {
             type="password"
             value={token}
             onChange={event => setToken(event.target.value)}
-            autoComplete="current-password"
+            autoComplete="new-password"
             placeholder="변경 작업에 필요"
           />
         </label>
