@@ -2,8 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { createSlotClient } from './slotApi.js'
 import SlotCard from './SlotCard.jsx'
-import { shouldPollFast } from './slotState.js'
-import { slotDateKeys, userFacingSlotError } from './slotView.js'
+import { slotDateKeys, slotPollDelay, userFacingSlotError } from './slotView.js'
 
 
 const TOKEN_KEY = 'shorts-factory-dashboard-token'
@@ -27,7 +26,12 @@ export default function SlotManager() {
   const [error, setError] = useState('')
   const tokenRef = useRef(token)
   const requestController = useRef(null)
+  const inFlight = useRef(null)
+  const refreshQueued = useRef(false)
+  const datesRef = useRef(dates)
+  const mounted = useRef(true)
   const dateKey = dates.join('|')
+  datesRef.current = dates
 
   useEffect(() => {
     tokenRef.current = token
@@ -43,18 +47,32 @@ export default function SlotManager() {
     getToken: () => tokenRef.current,
   }), [])
 
+  useEffect(() => {
+    mounted.current = true
+    return () => {
+      mounted.current = false
+      requestController.current?.abort()
+    }
+  }, [])
+
   const loadSlots = useCallback(async () => {
-    requestController.current?.abort()
+    if (inFlight.current) {
+      refreshQueued.current = true
+      return inFlight.current.catch(() => undefined)
+    }
     const controller = new AbortController()
     requestController.current = controller
     setError('')
-    try {
-      const payloads = await Promise.all(dates.map(date => (
+    const requestedDates = datesRef.current
+    const request = Promise.all(requestedDates.map(date => (
         client.listSlots(date, { signal: controller.signal })
-      )))
+    )))
+    inFlight.current = request
+    try {
+      const payloads = await request
       if (controller.signal.aborted) return
       setSlotsByDate(Object.fromEntries(payloads.map((payload, index) => [
-        dates[index],
+        requestedDates[index],
         Array.isArray(payload?.slots) ? payload.slots : [],
       ])))
     } catch (requestError) {
@@ -63,13 +81,27 @@ export default function SlotManager() {
       }
     } finally {
       if (!controller.signal.aborted) setLoading(false)
+      if (inFlight.current === request) {
+        inFlight.current = null
+        if (refreshQueued.current && mounted.current) {
+          refreshQueued.current = false
+          window.setTimeout(() => {
+            if (mounted.current) loadSlots()
+          }, 0)
+        }
+      }
     }
-  }, [client, dateKey])
+  }, [client])
 
   useEffect(() => {
+    requestController.current?.abort()
+    inFlight.current = null
+    refreshQueued.current = false
     loadSlots()
-    return () => requestController.current?.abort()
-  }, [loadSlots])
+    return () => {
+      requestController.current?.abort()
+    }
+  }, [dateKey, loadSlots])
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -84,11 +116,18 @@ export default function SlotManager() {
   }, [dates, selectedDate])
 
   const allSlots = Object.values(slotsByDate).flat()
-  const pollDelay = allSlots.some(shouldPollFast) ? 2000 : 30000
+  const pollDelay = slotPollDelay(allSlots)
 
   useEffect(() => {
-    const timer = window.setInterval(loadSlots, pollDelay)
-    return () => window.clearInterval(timer)
+    let cancelled = false
+    let timer = window.setTimeout(async function poll() {
+      await loadSlots()
+      if (!cancelled) timer = window.setTimeout(poll, pollDelay)
+    }, pollDelay)
+    return () => {
+      cancelled = true
+      window.clearTimeout(timer)
+    }
   }, [loadSlots, pollDelay])
 
   const slots = slotsByDate[selectedDate] || []
@@ -113,12 +152,11 @@ export default function SlotManager() {
       </div>
 
       <div className="slot-toolbar">
-        <div className="date-tabs" role="tablist" aria-label="회차 날짜">
+        <div className="date-tabs" aria-label="회차 날짜">
           {dates.map((date, index) => (
             <button
               type="button"
-              role="tab"
-              aria-selected={selectedDate === date}
+              aria-pressed={selectedDate === date}
               className={selectedDate === date ? 'active' : ''}
               key={date}
               onClick={() => setSelectedDate(date)}

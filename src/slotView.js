@@ -1,3 +1,6 @@
+import { shouldPollFast } from './slotState.js'
+
+
 const KST_TIME_ZONE = 'Asia/Seoul'
 
 
@@ -24,6 +27,11 @@ export function mergeSlotEvents(current, incoming) {
     if (Number.isInteger(event?.id) && !events.has(event.id)) events.set(event.id, event)
   }
   return [...events.values()].sort((left, right) => left.id - right.id)
+}
+
+
+export function slotPollDelay(slots) {
+  return (slots || []).some(shouldPollFast) ? 2000 : 30000
 }
 
 

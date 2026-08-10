@@ -5,6 +5,7 @@ import {
   formatKstDateTime,
   mergeSlotEvents,
   slotDateKeys,
+  slotPollDelay,
   userFacingSlotError,
 } from './slotView.js'
 
@@ -48,4 +49,10 @@ test('slot errors use stable Korean guidance instead of backend payload text', (
 
 test('slot timestamps are displayed as KST calendar time', () => {
   assert.equal(formatKstDateTime('2026-08-10T02:00:00Z'), '8월 10일 11:00')
+})
+
+
+test('slot polling uses two seconds for active work and thirty seconds when idle', () => {
+  assert.equal(slotPollDelay([{ state: 'producing' }]), 2000)
+  assert.equal(slotPollDelay([{ state: 'reserved' }, { state: 'auto' }]), 30000)
 })

@@ -94,7 +94,14 @@ export default function SlotCard({ slot, client, onChanged }) {
         <strong>{slot.normalized_topic || slot.original_input || '자동으로 소재를 선정합니다.'}</strong>
       </div>
 
-      <div className="slot-progress" aria-label={`진행률 ${progress.percent}%`}>
+      <div
+        className="slot-progress"
+        role="progressbar"
+        aria-label={`${slot.slot}회차 ${stateLabel}`}
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow={progress.percent}
+      >
         <div className="slot-progress-label"><span>{stateLabel}</span><span>{progress.percent}%</span></div>
         <div className="slot-progress-track"><span style={{ width: `${progress.percent}%` }} /></div>
       </div>
@@ -139,11 +146,12 @@ export default function SlotCard({ slot, client, onChanged }) {
 
       <TopicCheckForm slot={slot} actions={actions} client={client} onChanged={onChanged} />
 
-      {slot.mode === 'manual' ? (
-        <SlotEvents client={client} runId={slot.run_id} fast={shouldPollFast(slot)} />
-      ) : (
-        <p className="slot-muted auto-log-note">수동 소재를 확인하면 이곳에 진행 로그가 표시됩니다.</p>
-      )}
+      <SlotEvents
+        client={client}
+        runId={slot.run_id}
+        fast={shouldPollFast(slot)}
+        pollable={slot.mode === 'manual'}
+      />
 
       {['review_ready', 'held'].includes(slot.state) && (
         <SlotReview slot={slot} client={client} onChanged={onChanged} />
