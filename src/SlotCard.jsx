@@ -150,7 +150,6 @@ export default function SlotCard({ slot, client, onChanged }) {
         client={client}
         runId={slot.run_id}
         fast={shouldPollFast(slot)}
-        pollable={slot.mode === 'manual'}
       />
 
       {['review_ready', 'held'].includes(slot.state) && (

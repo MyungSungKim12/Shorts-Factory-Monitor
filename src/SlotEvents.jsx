@@ -3,18 +3,12 @@ import { useEffect, useRef, useState } from 'react'
 import { formatEventTime, mergeSlotEvents, userFacingSlotError } from './slotView.js'
 
 
-export default function SlotEvents({ client, runId, fast = false, pollable = true }) {
+export default function SlotEvents({ client, runId, fast = false }) {
   const [events, setEvents] = useState([])
   const [error, setError] = useState('')
   const lastId = useRef(0)
 
   useEffect(() => {
-    if (!pollable) {
-      lastId.current = 0
-      setEvents([])
-      setError('')
-      return undefined
-    }
     let active = true
     let timer
     let controller
@@ -51,7 +45,7 @@ export default function SlotEvents({ client, runId, fast = false, pollable = tru
       window.clearTimeout(timer)
       controller?.abort()
     }
-  }, [client, fast, pollable, runId])
+  }, [client, fast, runId])
 
   const recent = events.slice(-3)
 
