@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import Pagination from './Pagination.jsx'
 import SlotManager from './SlotManager.jsx'
+import { autoTopicStatus } from './autoTopics.js'
 import { normalizePage } from './pagination.js'
 import { formatRecovery } from './recovery.js'
 
@@ -69,8 +70,15 @@ export default function App() {
   const [historyLoading, setHistoryLoading] = useState(true)
   const [historyError, setHistoryError] = useState('')
 
+  const [autoTopics, setAutoTopics] = useState([])
+  const [autoTopicPage, setAutoTopicPage] = useState(1)
+  const [autoTopicPagination, setAutoTopicPagination] = useState(EMPTY_PAGINATION)
+  const [autoTopicLoading, setAutoTopicLoading] = useState(true)
+  const [autoTopicError, setAutoTopicError] = useState('')
+
   const videoRequest = useRef(0)
   const historyRequest = useRef(0)
+  const autoTopicRequest = useRef(0)
 
   const loadOverview = useCallback(async () => {
     const [healthResult, statusResult, reportResult] = await Promise.allSettled([
@@ -132,6 +140,30 @@ export default function App() {
     }
   }, [])
 
+  const loadAutoTopics = useCallback(async page => {
+    const requestId = ++autoTopicRequest.current
+    setAutoTopicLoading(true)
+    setAutoTopicError('')
+    try {
+      const data = await fetchJson(`/api/auto-topics?page=${page}&page_size=10`)
+      if (requestId !== autoTopicRequest.current) return
+      const pagination = data.pagination || EMPTY_PAGINATION
+      const validPage = normalizePage(page, pagination.total_pages)
+      if (validPage !== page) {
+        setAutoTopicPage(validPage)
+        return
+      }
+      setAutoTopics(data.topics || [])
+      setAutoTopicPagination(pagination)
+    } catch (error) {
+      if (requestId === autoTopicRequest.current) {
+        setAutoTopicError(`자동 소재 이력을 불러오지 못했습니다. (${error.message})`)
+      }
+    } finally {
+      if (requestId === autoTopicRequest.current) setAutoTopicLoading(false)
+    }
+  }, [])
+
   useEffect(() => {
     loadOverview()
   }, [loadOverview])
@@ -145,18 +177,24 @@ export default function App() {
   }, [historyPage, loadHistory])
 
   useEffect(() => {
+    loadAutoTopics(autoTopicPage)
+  }, [autoTopicPage, loadAutoTopics])
+
+  useEffect(() => {
     const timer = setInterval(() => {
       loadOverview()
       loadVideos(videoPage)
       loadHistory(historyPage)
+      loadAutoTopics(autoTopicPage)
     }, 30000)
     return () => clearInterval(timer)
-  }, [historyPage, loadHistory, loadOverview, loadVideos, videoPage])
+  }, [autoTopicPage, historyPage, loadAutoTopics, loadHistory, loadOverview, loadVideos, videoPage])
 
   const refreshAll = () => {
     loadOverview()
     loadVideos(videoPage)
     loadHistory(historyPage)
+    loadAutoTopics(autoTopicPage)
   }
 
   const serverUp = health?.status === 'ok'
@@ -178,6 +216,34 @@ export default function App() {
       </header>
 
       <SlotManager />
+
+      <section className="card">
+        <h2>자동 생성 소재 히스토리 <span className="dim">({autoTopicPagination.total_items}건)</span></h2>
+        {autoTopicError && <p className="list-error">{autoTopicError}</p>}
+        {autoTopicLoading && !autoTopics.length ? (
+          <p className="dim">자동 생성 소재를 불러오는 중입니다.</p>
+        ) : autoTopics.length ? (
+          <div className="table-scroll">
+            <table>
+              <thead><tr><th>회차</th><th>소재</th><th>영상 제목</th><th>상태</th><th>생성 시각</th></tr></thead>
+              <tbody>
+                {autoTopics.map(item => (
+                  <tr key={item.run_id}>
+                    <td className="dim">{item.run_id}</td>
+                    <td>{item.topic || '확인 필요'}</td>
+                    <td>{item.title || '작성 전'}</td>
+                    <td className={item.status === 'uploaded' ? 'ok-text' : 'dim'}>{autoTopicStatus(item.status)}</td>
+                    <td className="dim">{item.generated_at ? new Date(item.generated_at).toLocaleString('ko-KR') : '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="dim">기록된 자동 생성 소재가 없습니다.</p>
+        )}
+        <Pagination pagination={autoTopicPagination} onPageChange={setAutoTopicPage} disabled={autoTopicLoading} />
+      </section>
 
       <section className="card">
         <h2>오늘의 파이프라인 {status?.date && <span className="dim">({status.date})</span>}</h2>
