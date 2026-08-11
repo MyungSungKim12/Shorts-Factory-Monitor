@@ -327,6 +327,21 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 .add-reference { justify-self: start; }
 .interpretation-box,
 .topic-preview { margin-top: 13px; border: 1px solid #384157; border-radius: 9px; padding: 12px; background: #19202e; }
+.candidate-box { margin-top: 14px; }
+.candidate-heading { display: grid; gap: 4px; }
+.candidate-heading strong { font-size: 0.86rem; }
+.candidate-heading span { color: #8993a8; font-size: 0.75rem; }
+.candidate-list { display: grid; gap: 10px; margin-top: 10px; }
+.candidate-card { border: 1px solid #3a465f; border-radius: 10px; padding: 13px; background: #182131; }
+.candidate-rank { color: #82aaf5; font-size: 0.7rem; font-weight: 700; }
+.candidate-card h4 { margin-top: 5px; font-size: 0.9rem; line-height: 1.4; }
+.candidate-card p { margin-top: 5px; color: #c0c7d5; font-size: 0.78rem; line-height: 1.45; }
+.candidate-card .candidate-hook { color: #e0b875; }
+.candidate-card .candidate-sources { color: #8993a8; font-size: 0.7rem; overflow-wrap: anywhere; }
+.candidate-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px 12px; margin-top: 10px; }
+.candidate-facts dt { color: #8993a8; font-size: 0.68rem; }
+.candidate-facts dd { margin-top: 2px; color: #d8dde7; font-size: 0.76rem; }
+.candidate-card button { margin-top: 11px; }
 .interpretation-box strong,
 .topic-preview h4,
 .slot-events h4,
@@ -384,7 +399,8 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
   .slot-card-heading { flex-direction: column; }
   .slot-badges { justify-content: flex-start; }
   .topic-form-grid,
-  .slot-facts { grid-template-columns: 1fr; }
+  .slot-facts,
+  .candidate-facts { grid-template-columns: 1fr; }
   .slot-times div { align-items: flex-start; flex-direction: column; gap: 2px; }
   .slot-times dd { text-align: left; }
   .reference-row { align-items: stretch; flex-direction: column; }

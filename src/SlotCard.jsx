@@ -36,6 +36,7 @@ const FAILURE_REASONS = {
   safety_rejected: '안전성 기준에 따라 이 소재를 사용할 수 없습니다.',
   grounding_invalid: '사실 검증 조건을 충족하지 못했습니다.',
   visual_insufficient: '사용 가능한 시각 자료가 부족합니다.',
+  no_viable_candidates: '검증된 출처와 제작 가능한 시각 자료를 갖춘 후보를 찾지 못했습니다.',
 }
 
 

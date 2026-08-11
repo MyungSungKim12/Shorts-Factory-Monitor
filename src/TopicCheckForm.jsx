@@ -77,6 +77,19 @@ export default function TopicCheckForm({ slot, actions, client, onChanged }) {
     }
   }
 
+  const selectCandidate = async candidateId => {
+    setPending(`candidate:${candidateId}`)
+    setError('')
+    try {
+      await client.selectCandidate(slot.run_id, candidateId)
+      await onChanged()
+    } catch (requestError) {
+      setError(userFacingSlotError(requestError, '선택한 소재를 확정하지 못했습니다.'))
+    } finally {
+      setPending('')
+    }
+  }
+
   const cancel = async () => {
     if (!window.confirm('이 회차의 수동 소재 예약을 취소할까요?')) return
     setPending('cancel')
@@ -174,6 +187,48 @@ export default function TopicCheckForm({ slot, actions, client, onChanged }) {
             ))}
           </div>
           <p className="slot-muted">선택한 뒤 ‘소재 확인’을 다시 눌러 주세요.</p>
+        </div>
+      )}
+
+      {result?.status === 'needs_input' && result.candidate_options?.length > 0 && (
+        <div className="candidate-box">
+          <div className="candidate-heading">
+            <strong>제작 가능한 영상 소재를 선택해 주세요</strong>
+            <span>출처와 시각 자료를 사전 확인한 후보입니다.</span>
+          </div>
+          <div className="candidate-list">
+            {result.candidate_options.map((candidate, index) => {
+              const candidateVisual = candidate.visual || {}
+              const choosing = pending === `candidate:${candidate.id}`
+              return (
+                <article className="candidate-card" key={candidate.id}>
+                  <div className="candidate-rank">추천 {index + 1}</div>
+                  <h4>{candidate.topic}</h4>
+                  <p>{candidate.core_question}</p>
+                  {candidate.hook_angle && <p className="candidate-hook">후킹: {candidate.hook_angle}</p>}
+                  <dl className="candidate-facts">
+                    <div><dt>검증 출처</dt><dd>{candidate.source_count || 0}개</dd></div>
+                    <div><dt>제작 가능성</dt><dd>{FEASIBILITY_LABELS[candidateVisual.level] || '확인 필요'}</dd></div>
+                    <div><dt>정확 이미지</dt><dd>{candidateVisual.exact_wikimedia_count || 0}개</dd></div>
+                    <div><dt>AI 보완</dt><dd>{Boolean(candidateVisual.reusable_ai_count || candidateVisual.new_ai_allowed) ? '가능' : '불필요/불가'}</dd></div>
+                  </dl>
+                  {candidate.sources?.length > 0 && (
+                    <p className="candidate-sources">
+                      출처: {candidate.sources.map(source => source.source).filter(Boolean).join(', ')}
+                    </p>
+                  )}
+                  <button
+                    type="button"
+                    className="button-primary"
+                    onClick={() => selectCandidate(candidate.id)}
+                    disabled={Boolean(pending)}
+                  >
+                    {choosing ? '확정 중…' : '이 소재 선택'}
+                  </button>
+                </article>
+              )
+            })}
+          </div>
         </div>
       )}
 

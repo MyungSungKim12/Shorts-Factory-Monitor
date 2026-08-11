@@ -56,6 +56,11 @@ export function createSlotClient({ getToken, fetchImpl = fetch }) {
         method: 'POST', body: topic, protected: true,
       })
     },
+    selectCandidate(runId, candidateId) {
+      return request(`/${encodeURIComponent(runId)}/select-candidate`, {
+        method: 'POST', body: { candidate_id: candidateId }, protected: true,
+      })
+    },
     reserve(runId) {
       return request(`/${encodeURIComponent(runId)}/reservation`, {
         method: 'PUT', body: { checked: true }, protected: true,

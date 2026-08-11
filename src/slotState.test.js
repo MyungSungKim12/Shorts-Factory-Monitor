@@ -138,6 +138,7 @@ test('slot client uses the documented methods, paths, bodies, and per-call token
     ['list', () => client.listSlots('2026-08-10'), '/api/slots?date=2026-08-10', 'GET', undefined],
     ['detail', () => client.getSlot('20260810-1'), '/api/slots/20260810-1', 'GET', undefined],
     ['check', () => client.checkTopic('20260810-1', { topic_input: '달의 바다' }), '/api/slots/20260810-1/check-topic', 'POST', { topic_input: '달의 바다' }],
+    ['candidate', () => client.selectCandidate('20260810-1', 'abcdef123456'), '/api/slots/20260810-1/select-candidate', 'POST', { candidate_id: 'abcdef123456' }],
     ['reserve', () => client.reserve('20260810-1'), '/api/slots/20260810-1/reservation', 'PUT', { checked: true }],
     ['cancel', () => client.cancel('20260810-1'), '/api/slots/20260810-1/reservation', 'DELETE', undefined],
     ['events', () => client.events('20260810-1', 8, 25), '/api/slots/20260810-1/events?after_id=8&limit=25', 'GET', undefined],
@@ -160,7 +161,7 @@ test('slot client uses the documented methods, paths, bodies, and per-call token
   }
   assert.equal(requests[0].init.headers?.['X-Token'], 'first-token')
   assert.equal(requests[1].init.headers?.['X-Token'], 'first-token')
-  assert.equal(requests[5].init.headers?.['X-Token'], undefined)
+  assert.equal(requests[6].init.headers?.['X-Token'], undefined)
   assert.equal(requests[2].init.headers['X-Token'], 'first-token')
   assert.equal(requests.at(-1).init.headers['X-Token'], 'second-token')
 })
