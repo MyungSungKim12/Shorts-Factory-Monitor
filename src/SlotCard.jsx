@@ -116,7 +116,7 @@ export default function SlotCard({ slot, client, onChanged }) {
 
       {error && <p className="slot-inline-error" role="alert">{error}</p>}
 
-      {(actions.canRetry || actions.canSkip) && (
+      {(actions.canRetry || actions.canSkip || actions.canRestoreAutomatic) && (
         <div className="slot-button-row failure-actions">
           {actions.canRetry && (
             <>
@@ -141,6 +141,18 @@ export default function SlotCard({ slot, client, onChanged }) {
               disabled={Boolean(pending)}
               onClick={() => act('skip', '이번 회차를 업로드 없이 건너뛸까요?', () => client.skip(slot.run_id))}
             >{pending === 'skip' ? '처리 중…' : '이번 회차 건너뛰기'}</button>
+          )}
+          {actions.canRestoreAutomatic && (
+            <button
+              type="button"
+              className="button-primary"
+              disabled={Boolean(pending)}
+              onClick={() => act(
+                'automatic',
+                '수동 소재를 해제하고 이 회차를 자동 소재로 제작할까요?',
+                () => client.restoreAutomatic(slot.run_id),
+              )}
+            >{pending === 'automatic' ? '자동 전환 중…' : '자동 소재로 전환'}</button>
           )}
         </div>
       )}

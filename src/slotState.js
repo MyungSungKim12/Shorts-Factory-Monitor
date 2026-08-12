@@ -14,6 +14,9 @@ const CHECKABLE_STATES = new Set([
 
 const REVIEW_STATES = new Set(['review_ready', 'held'])
 const RETRYABLE_STATES = new Set(['failed', 'rejected'])
+const AUTOMATIC_RESTORE_STATES = new Set([
+  'draft', 'needs_input', 'reservable', 'reserved', 'failed', 'rejected', 'skipped',
+])
 
 const PROGRESS = [
   ['checking', '소재 검증 중'],
@@ -57,6 +60,7 @@ export function slotActions(slot, now = new Date()) {
     canReject: reviewReady,
     canRetry: retryable,
     canSkip: retryable,
+    canRestoreAutomatic: idle && slot?.mode === 'manual' && AUTOMATIC_RESTORE_STATES.has(state),
   }
 }
 

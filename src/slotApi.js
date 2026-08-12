@@ -71,6 +71,11 @@ export function createSlotClient({ getToken, fetchImpl = fetch }) {
         method: 'DELETE', protected: true,
       })
     },
+    restoreAutomatic(runId) {
+      return request(`/${encodeURIComponent(runId)}/automatic`, {
+        method: 'POST', protected: true,
+      })
+    },
     events(runId, afterId = 0, limit = 100, options = {}) {
       return request(`/${encodeURIComponent(runId)}/events?after_id=${encodeURIComponent(afterId)}&limit=${encodeURIComponent(limit)}`, {
         signal: options.signal,

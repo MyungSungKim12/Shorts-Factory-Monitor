@@ -90,6 +90,16 @@ test('active worker prevents retry and skip until it releases the slot', () => {
 })
 
 
+test('idle failed manual slot can return to automatic while active or uploaded slots cannot', () => {
+  assert.equal(slotActions(slot({ mode: 'manual', state: 'failed' })).canRestoreAutomatic, true)
+  assert.equal(slotActions(slot({ mode: 'manual', state: 'needs_input' })).canRestoreAutomatic, true)
+  assert.equal(slotActions(slot({ mode: 'manual', state: 'skipped' })).canRestoreAutomatic, true)
+  assert.equal(slotActions(slot({ mode: 'manual', state: 'failed', worker_id: 'worker' })).canRestoreAutomatic, false)
+  assert.equal(slotActions(slot({ mode: 'manual', state: 'uploaded' })).canRestoreAutomatic, false)
+  assert.equal(slotActions(slot({ mode: 'auto', state: 'auto' })).canRestoreAutomatic, false)
+})
+
+
 test('progress identifies the production stage with a bounded percentage', () => {
   assert.deepEqual(slotProgress('producing'), {
     index: 7,
@@ -141,6 +151,7 @@ test('slot client uses the documented methods, paths, bodies, and per-call token
     ['candidate', () => client.selectCandidate('20260810-1', 'abcdef123456'), '/api/slots/20260810-1/select-candidate', 'POST', { candidate_id: 'abcdef123456' }],
     ['reserve', () => client.reserve('20260810-1'), '/api/slots/20260810-1/reservation', 'PUT', { checked: true }],
     ['cancel', () => client.cancel('20260810-1'), '/api/slots/20260810-1/reservation', 'DELETE', undefined],
+    ['automatic', () => client.restoreAutomatic('20260810-1'), '/api/slots/20260810-1/automatic', 'POST', undefined],
     ['events', () => client.events('20260810-1', 8, 25), '/api/slots/20260810-1/events?after_id=8&limit=25', 'GET', undefined],
     ['approve', () => client.approve('20260810-1'), '/api/slots/20260810-1/approve', 'POST', undefined],
     ['reject', () => client.reject('20260810-1', '다시 제작'), '/api/slots/20260810-1/reject', 'POST', { reason: '다시 제작' }],
@@ -161,7 +172,7 @@ test('slot client uses the documented methods, paths, bodies, and per-call token
   }
   assert.equal(requests[0].init.headers?.['X-Token'], 'first-token')
   assert.equal(requests[1].init.headers?.['X-Token'], 'first-token')
-  assert.equal(requests[6].init.headers?.['X-Token'], undefined)
+  assert.equal(requests[7].init.headers?.['X-Token'], undefined)
   assert.equal(requests[2].init.headers['X-Token'], 'first-token')
   assert.equal(requests.at(-1).init.headers['X-Token'], 'second-token')
 })
