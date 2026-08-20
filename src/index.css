@@ -45,6 +45,14 @@ header p { color: #8b93a7; margin-top: 6px; font-size: 0.85rem; }
 }
 
 .card h2 { font-size: 1.05rem; margin-bottom: 14px; }
+.card-heading-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.card-heading-row h2 { margin-bottom: 0; }
 
 .dim { color: #8b93a7; font-weight: normal; font-size: 0.9em; }
 
@@ -89,6 +97,7 @@ a:hover { text-decoration: underline; }
 }
 .history-summary { display: flex; justify-content: space-between; gap: 12px; }
 .ok-text { color: #6fce8e; }
+.warn-text { color: #e0af68; }
 .err-text { color: #f7768e; }
 .recovery-status { display: flex; align-items: flex-start; gap: 8px; flex-wrap: wrap; }
 .recovery-badge {
@@ -135,6 +144,59 @@ a:hover { text-decoration: underline; }
 .page-buttons button:disabled { cursor: not-allowed; opacity: 0.4; }
 .subsection-title { margin-top: 20px; }
 .report-time { margin-top: 12px; }
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.metric-card {
+  border: 1px solid #2a3142;
+  border-radius: 10px;
+  background: #141923;
+  padding: 12px;
+}
+.metric-card span {
+  display: block;
+  color: #8b93a7;
+  font-size: 0.76rem;
+  margin-bottom: 6px;
+}
+.metric-card strong { font-size: 1rem; }
+.insight-section {
+  margin-top: 18px;
+}
+.insight-section h3 {
+  color: #cdd3df;
+  font-size: 0.9rem;
+  margin-bottom: 9px;
+}
+.watch-list,
+.warning-list {
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  padding: 0;
+}
+.watch-list li {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  border-bottom: 1px solid #262b3a;
+  padding: 8px 0;
+  font-size: 0.84rem;
+}
+.watch-list strong { overflow-wrap: anywhere; }
+.warning-list {
+  margin-top: 14px;
+  border: 1px solid #5b4a26;
+  border-radius: 8px;
+  background: #242116;
+  color: #e0af68;
+  padding: 10px 12px;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
 
 pre {
   background: #0f1117;
@@ -387,6 +449,7 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
   header h1 { font-size: 1.45rem; }
   .header-actions { width: 100%; justify-content: space-between; }
   .card { padding: 16px; }
+  .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .history-summary { flex-direction: column; gap: 4px; }
   .recovery-status { flex-direction: column; }
   .pagination { align-items: flex-start; flex-direction: column; }
@@ -405,4 +468,5 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
   .slot-times dd { text-align: left; }
   .reference-row { align-items: stretch; flex-direction: column; }
   .reference-row .button-quiet { align-self: flex-start; }
+  .watch-list li { grid-template-columns: 1fr; gap: 3px; }
 }

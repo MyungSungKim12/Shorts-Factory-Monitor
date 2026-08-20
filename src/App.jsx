@@ -4,6 +4,13 @@ import Pagination from './Pagination.jsx'
 import SlotManager from './SlotManager.jsx'
 import { autoTopicStatus } from './autoTopics.js'
 import { normalizePage } from './pagination.js'
+import {
+  categoryLabel,
+  formatNumber,
+  formatRatio,
+  performanceStatusClass,
+  performanceStatusLabel,
+} from './performanceInsights.js'
 import { formatRecovery } from './recovery.js'
 
 
@@ -56,6 +63,8 @@ export default function App() {
   const [health, setHealth] = useState(null)
   const [status, setStatus] = useState(null)
   const [report, setReport] = useState(null)
+  const [performance, setPerformance] = useState(null)
+  const [performanceError, setPerformanceError] = useState('')
   const [lastSync, setLastSync] = useState(null)
 
   const [videos, setVideos] = useState([])
@@ -81,14 +90,22 @@ export default function App() {
   const autoTopicRequest = useRef(0)
 
   const loadOverview = useCallback(async () => {
-    const [healthResult, statusResult, reportResult] = await Promise.allSettled([
+    const [healthResult, statusResult, reportResult, performanceResult] = await Promise.allSettled([
       fetchJson('/api/health'),
       fetchJson('/api/status'),
       fetchJson('/api/report'),
+      fetchJson('/api/performance-summary'),
     ])
     setHealth(healthResult.status === 'fulfilled' ? healthResult.value : null)
     if (statusResult.status === 'fulfilled') setStatus(statusResult.value)
     if (reportResult.status === 'fulfilled') setReport(reportResult.value)
+    if (performanceResult.status === 'fulfilled') {
+      setPerformance(performanceResult.value)
+      setPerformanceError('')
+    } else {
+      const message = performanceResult.reason?.message || '알 수 없는 오류'
+      setPerformanceError(`성과 인사이트를 불러오지 못했습니다. (${message})`)
+    }
     setLastSync(new Date().toLocaleTimeString('ko-KR'))
   }, [])
 
@@ -216,6 +233,109 @@ export default function App() {
       </header>
 
       <SlotManager />
+
+      <section className="card">
+        <div className="card-heading-row">
+          <h2>장기 성과 인사이트</h2>
+          <span className={performanceStatusClass(performance?.collection)}>
+            {performanceStatusLabel(performance?.collection)}
+          </span>
+        </div>
+        {performanceError && <p className="list-error">{performanceError}</p>}
+        {!performanceError && !performance?.available ? (
+          <p className="dim">{performance?.message || '성과 수집 리포트를 기다리는 중입니다.'}</p>
+        ) : performance?.available ? (
+          <>
+            <div className="metric-grid">
+              <div className="metric-card">
+                <span>분석 영상</span>
+                <strong>{formatNumber(performance.summary?.total_videos, '개')}</strong>
+              </div>
+              <div className="metric-card">
+                <span>중앙 조회수</span>
+                <strong>{formatNumber(performance.summary?.median_views, '회')}</strong>
+              </div>
+              <div className="metric-card">
+                <span>참여 조회율</span>
+                <strong>{formatRatio(performance.summary?.median_engaged_view_rate)}</strong>
+              </div>
+              <div className="metric-card">
+                <span>평균 시청 유지</span>
+                <strong>{formatRatio(performance.summary?.median_average_view_percentage)}</strong>
+              </div>
+            </div>
+
+            {performance.top_categories?.length > 0 && (
+              <div className="insight-section">
+                <h3>상위 카테고리</h3>
+                <div className="table-scroll">
+                  <table>
+                    <thead><tr><th>카테고리</th><th>영상</th><th>중앙 조회수</th><th>시청 유지</th></tr></thead>
+                    <tbody>
+                      {performance.top_categories.map(item => (
+                        <tr key={item.category}>
+                          <td>{categoryLabel(item.category)}</td>
+                          <td className="dim">{formatNumber(item.videos, '개')}</td>
+                          <td>{formatNumber(item.median_views, '회')}</td>
+                          <td className="dim">{formatRatio(item.median_average_view_percentage)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {performance.top_videos?.length > 0 && (
+              <div className="insight-section">
+                <h3>성과 상위 영상</h3>
+                <div className="table-scroll">
+                  <table>
+                    <thead><tr><th>회차</th><th>제목</th><th>조회수</th><th>유지율</th></tr></thead>
+                    <tbody>
+                      {performance.top_videos.map(video => (
+                        <tr key={`${video.run_id}-${video.video_id}`}>
+                          <td className="dim">{video.run_id || '-'}</td>
+                          <td>{video.url ? <a href={video.url} target="_blank" rel="noreferrer">{video.title}</a> : video.title}</td>
+                          <td>{formatNumber(video.views, '회')}</td>
+                          <td className="dim">{formatRatio(video.average_view_percentage)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {performance.watch_items?.length > 0 && (
+              <div className="insight-section">
+                <h3>주의 소재</h3>
+                <ul className="watch-list">
+                  {performance.watch_items.map(item => (
+                    <li key={item.run_id}>
+                      <span className="dim">{item.run_id}</span>
+                      <strong>{item.title || '제목 없음'}</strong>
+                      <span className="err-text">{formatNumber(item.views, '회')}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {performance.warnings?.length > 0 && (
+              <ul className="warning-list">
+                {performance.warnings.map(warning => <li key={warning}>{warning}</li>)}
+              </ul>
+            )}
+
+            {performance.generated_at && (
+              <p className="dim report-time">성과 갱신: {new Date(performance.generated_at).toLocaleString('ko-KR')}</p>
+            )}
+          </>
+        ) : (
+          <p className="dim">성과 인사이트를 불러오는 중입니다.</p>
+        )}
+      </section>
 
       <section className="card">
         <h2>자동 생성 소재 히스토리 <span className="dim">({autoTopicPagination.total_items}건)</span></h2>
